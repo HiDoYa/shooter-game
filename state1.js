@@ -4,11 +4,22 @@
 var gravity = 850; //World Properties
 var score = 0; //Score keeping ** 
 var sky, platforms, ground, ledge; //BG
-var player, enemyNum = 10; //Characters
+var player, playerSpeed = 150, playerJump = 450; //Player
+var enemyNum = 10, enemyJump = 300, enemySpeed = 50; //Enemies
 var arrowKeys, spaceKey; //Keyboard
 var muOne, muTwo, muThree; //Music
-var bulletSpeed = 600; //Projectiles
-var nextFire = 0, fireRate = 400; //Gun
+var bulletSpeed = 600, nextFire = 0, fireRate = 400; //Gun
+//Rifle, handgun, etc.
+var pistol = 
+{
+    damage: 30,
+    range: 500,
+    gunImage: null,
+    bulletImage: null,
+    fireRate: 400,
+    bulletsPerClip: 4,
+    reloadTime: 2000
+};
 var jumpFlag = false, jumpTime; //For jumping
 //Arrays
 var bulletArr = new Array(); //Array for bullets
@@ -31,7 +42,6 @@ shooter.state1.prototype =
     	game.load.audio('tobyFoxMP3', 'assets/dogBass.mp3');
     	game.load.audio('diddyKongMP3', 'assets/diddyKong.mp3');
     },
-    
     
     create: function()
     {
@@ -101,24 +111,45 @@ shooter.state1.prototype =
     	arrowKeys = game.input.keyboard.createCursorKeys();
     	spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     },
+    
     update: function()
     {
     	//Collision
     	game.physics.arcade.collide(player, platforms);
     	game.physics.arcade.collide(platforms, enemyArr);
     	game.physics.arcade.collide(player,enemyArr);
+
+    	//Changes score and makes new box for score background. **
+    	var rect = new Phaser.Rectangle(0, 0, 200, 50);
+    	game.debug.geom(rect, '#0fffff');
+    	game.add.text(0, 0, "Score: " + score, {fill: "#ff0000"}); 
     	
+    	//Checks for player movement
+    	this.playerMove();
+    	//Checks for shooting of bullet (space)
+    	this.shootBullet();
+    	//Checks for collision of bullet
+    	this.bulletEnemyCollision();
+    	//Moves the enemies
+    	this.enemyMovement();
+    	//Checks for dead enemies
+    	this.deathSprite(); 
+    },
+    
+    //Player movement for jump, left, and right
+    playerMove: function()
+    {
     	//Player movement for left or right
     	player.body.velocity.x = 0;
     	if (arrowKeys.left.isDown)
     	{
-    		player.body.velocity.x = -150;
+    		player.body.velocity.x = -playerSpeed;
     		player.animations.play('left');
     		player.direction = 0;
     	}
     	else if (arrowKeys.right.isDown)
     	{
-    		player.body.velocity.x = 150;
+    		player.body.velocity.x = playerSpeed;
     		player.animations.play('right');
     		player.direction = 1;
     	}
@@ -135,48 +166,20 @@ shooter.state1.prototype =
     			player.frame = 5;
     		}
     	}
-    	
-    	//Changes score and makes new box for score background. **
-    	var rect = new Phaser.Rectangle(0, 0, 200, 50);
-    	game.debug.geom(rect, '#0fffff');
-    	game.add.text(0, 0, "Score: " + score, {fill: "#ff0000"}); 
-    	
-    	//Checks for playerJump
-    	this.playerJump();
-    	//Checks for shooting of bullet (space)
-    	this.shootBullet();
-    	//Checks for collision of bullet
-    	this.bulletEnemyCollision();
-    	//Moves the enemies
-    	this.enemyMovement();
-    	
-    	//[Continuation of death] Completely kills off the sprite if it has already faded
-    	for (var i = 0; i < enemyNum; i++)
-    	{
-        	if(enemyArr[i].alpha < 0.1) 
-        	{
-        		enemyArr[i].destroy();
-    
-        	}
-    	}
-
-    	
-    },
-    //Press spacebar for jump or for double jump
-    playerJump: function()
-    {
+        //Press spacebar for jump or for double jump
         if(arrowKeys.up.isDown && player.body.touching.down)
     	{
-    		player.body.velocity.y = -450;
+    		player.body.velocity.y = -playerJump;
     		jumpFlag = true;
     		jumpTime = game.time.now
     	}
     	else if (arrowKeys.up.isDown && jumpFlag === true && game.time.now > (jumpTime + 450))
     	{
-    	    player.body.velocity.y = -450;
+    	    player.body.velocity.y = -playerJump;
     	    jumpFlag = false;
     	}
     },
+    
     //Enemies move. If enemies are already moving in a direction, they are more likely to keep moving in that direction. At any point, they have a 1% chance of changing directions. 
     enemyMovement: function()
     {
@@ -185,7 +188,7 @@ shooter.state1.prototype =
     		//If enemy direction is 0, it moves to the left
     		if(enemyArr[i].direction === 0)
     		{
-    			enemyArr[i].body.velocity.x = -50;
+    			enemyArr[i].body.velocity.x = -enemySpeed;
     			if((Math.round(Math.random() + 0.49)) === 0)
     			{
     				enemyArr[i].direction = 1;
@@ -194,14 +197,19 @@ shooter.state1.prototype =
     		//If enemy direction is 1, it moves to the right
     		else if (enemyArr[i].direction === 1)
     		{
-    			enemyArr[i].body.velocity.x = 50;
+    			enemyArr[i].body.velocity.x = enemySpeed;
     			if((Math.round(Math.random() + 0.49)) === 0)
     			{
     				enemyArr[i].direction = 0;
     			}
     		}
+    		if(Math.random() > 0.99)
+    		{
+    		    enemyArr[i].body.velocity.y = enemyJump;
+    		}
     	}
     },
+    
     //Spacebar creates and shoots a bullet based on player direction and fire rate. 
     shootBullet: function()
     {
@@ -231,6 +239,7 @@ shooter.state1.prototype =
     		}
     	}
     },
+    
     //When an enemy and a bullet collides, play death animation for enemy and destroy bullet. 
     bulletEnemyCollision: function()
     {
@@ -241,22 +250,37 @@ shooter.state1.prototype =
     		{
     			if(game.physics.arcade.collide(enemyArr[enemyIndex], bulletArr[bulletIndex]))
     			{
-    				this.death(enemyArr[enemyIndex]);
+    				this.deathAnimation(enemyArr[enemyIndex]);
     				bulletArr[bulletIndex].destroy();
     			}
     		}
     	}
     },
+    
     //Plays death animation for the sprite. 
-    death: function(sprite)
+    deathAnimation: function(sprite)
     {
         //Increases score **
     	score++; 
     	//Fades the sprite
     	game.add.tween(sprite).to( { alpha: 0 }, 150, Phaser.Easing.Linear.None, true);
     },
+    
+    //[Continuation of death] Completely kills off the sprite if it has already faded
+    deathSprite: function()
+    {
+    	for (var i = 0; i < enemyNum; i++)
+    	{
+        	if(enemyArr[i].alpha < 0.1) 
+        	{
+        		enemyArr[i].destroy();
+    
+        	}
+    	}
+    },
+    
     //Debugging purposes
-    debugging: function()
+    debugging: function(x)
     {
         console.log("Debug: " + x);
     }
