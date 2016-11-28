@@ -4,11 +4,12 @@
 var gravity = 850; //World Properties
 var score = 0; //Score keeping ** 
 var sky, platforms, ground, ledge; //BG
-var player, enemyNum = 4; //Characters
+var player, enemyNum = 10; //Characters
 var arrowKeys, spaceKey; //Keyboard
 var muOne, muTwo, muThree; //Music
 var bulletSpeed = 600; //Projectiles
 var nextFire = 0, fireRate = 400; //Gun
+var jumpFlag = false, jumpTime; //For jumping
 //Arrays
 var bulletArr = new Array(); //Array for bullets
 var enemyArr = new Array(); //Array for enemies
@@ -135,20 +136,46 @@ shooter.state1.prototype =
     		}
     	}
     	
-    	//Jump and double jump **
-    	if(arrowKeys.up.isDown && player.body.touching.down)
-    	{
-    		player.body.velocity.y = -450;
-    	}
-    	
     	//Changes score and makes new box for score background. **
     	var rect = new Phaser.Rectangle(0, 0, 200, 50);
     	game.debug.geom(rect, '#0fffff');
     	game.add.text(0, 0, "Score: " + score, {fill: "#ff0000"}); 
     	
+    	//Checks for playerJump
+    	this.playerJump();
+    	//Checks for shooting of bullet (space)
     	this.shootBullet();
+    	//Checks for collision of bullet
     	this.bulletEnemyCollision();
+    	//Moves the enemies
     	this.enemyMovement();
+    	
+    	//[Continuation of death] Completely kills off the sprite if it has already faded
+    	for (var i = 0; i < enemyNum; i++)
+    	{
+        	if(enemyArr[i].alpha < 0.1) 
+        	{
+        		enemyArr[i].destroy();
+    
+        	}
+    	}
+
+    	
+    },
+    //Press spacebar for jump or for double jump
+    playerJump: function()
+    {
+        if(arrowKeys.up.isDown && player.body.touching.down)
+    	{
+    		player.body.velocity.y = -450;
+    		jumpFlag = true;
+    		jumpTime = game.time.now
+    	}
+    	else if (arrowKeys.up.isDown && jumpFlag === true && game.time.now > (jumpTime + 450))
+    	{
+    	    player.body.velocity.y = -450;
+    	    jumpFlag = false;
+    	}
     },
     //Enemies move. If enemies are already moving in a direction, they are more likely to keep moving in that direction. At any point, they have a 1% chance of changing directions. 
     enemyMovement: function()
@@ -223,15 +250,10 @@ shooter.state1.prototype =
     //Plays death animation for the sprite. 
     death: function(sprite)
     {
+        //Increases score **
+    	score++; 
     	//Fades the sprite
     	game.add.tween(sprite).to( { alpha: 0 }, 150, Phaser.Easing.Linear.None, true);
-    	//If the sprite is faded, then destroy it
-    	if(sprite.alpha < 0.1)
-    	{
-    		sprite.destroy();
-    		//Increases score **
-    		score++; 
-    	}
     },
     //Debugging purposes
     debugging: function()
