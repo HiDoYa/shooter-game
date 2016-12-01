@@ -234,11 +234,13 @@ shooter.state1.prototype =
     			//Adds bullet to the bulletArr array
     			bulletArr[bulletArr.length] = bullets;
     			
+    			//THIS CODE CAN BE IMPROVED **
     			//Shoots bullet with bulletSpeed velocity
     			var angle = Math.atan((clickY - player.y) / (clickX - player.x));
     			bullets.body.velocity.x = Math.cos(angle) * bulletSpeed;
     			bullets.body.velocity.y = Math.sin(angle) * bulletSpeed;
-    			
+
+    			//For angles between 91 degrees to 270 degrees, the x and y velocity is negative
     			if (clickX < player.x)
     			{
     			    bullets.body.velocity.x = -bullets.body.velocity.x;
