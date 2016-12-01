@@ -1,12 +1,13 @@
 //The actual shooting game
 
 //Variables
+var keyW, keyA, keyS, keyD; //WASD Controls
+var click, clickX, clickY; //Mouse clicks
 var gravity = 850; //World Properties
 var score = 0; //Score keeping ** 
 var sky, platforms, ground, ledge; //BG
 var player, playerSpeed = 150, playerJump = 450; //Player
 var enemyNum = 10, enemyJump = 300, enemySpeed = 50; //Enemies
-var arrowKeys, spaceKey; //Keyboard
 var muOne, muTwo, muThree; //Music
 var bulletSpeed = 600, nextFire = 0, fireRate = 400; //Gun
 //Rifle, handgun, etc.
@@ -108,12 +109,20 @@ shooter.state1.prototype =
     	}
     	
     	//Player controls
-    	arrowKeys = game.input.keyboard.createCursorKeys();
-    	spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    	keyW = game.input.keyboard.addKey(Phaser.Keyboard.W);
+    	keyA = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    	keyS = game.input.keyboard.addKey(Phaser.Keyboard.S);
+    	keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    	game.input.mouse.capture = true;
     },
     
     update: function()
     {
+        //Mouse Click 
+    	click = game.input.activePointer.isDown;
+    	clickX = game.input.activePointer.x;
+    	clickY = game.input.activePointer.y;
+        
     	//Collision
     	game.physics.arcade.collide(player, platforms);
     	game.physics.arcade.collide(platforms, enemyArr);
@@ -126,7 +135,7 @@ shooter.state1.prototype =
     	
     	//Checks for player movement
     	this.playerMove();
-    	//Checks for shooting of bullet (space)
+    	//Checks for shooting of bullet
     	this.shootBullet();
     	//Checks for collision of bullet
     	this.bulletEnemyCollision();
@@ -141,13 +150,13 @@ shooter.state1.prototype =
     {
     	//Player movement for left or right
     	player.body.velocity.x = 0;
-    	if (arrowKeys.left.isDown)
+    	if (keyA.isDown)
     	{
     		player.body.velocity.x = -playerSpeed;
     		player.animations.play('left');
     		player.direction = 0;
     	}
-    	else if (arrowKeys.right.isDown)
+    	else if (keyD.isDown)
     	{
     		player.body.velocity.x = playerSpeed;
     		player.animations.play('right');
@@ -166,14 +175,14 @@ shooter.state1.prototype =
     			player.frame = 5;
     		}
     	}
-        //Press spacebar for jump or for double jump
-        if(arrowKeys.up.isDown && player.body.touching.down)
+        //Press w for jump or for double jump
+        if(keyW.isDown && player.body.touching.down)
     	{
     		player.body.velocity.y = -playerJump;
     		jumpFlag = true;
     		jumpTime = game.time.now
     	}
-    	else if (arrowKeys.up.isDown && jumpFlag === true && game.time.now > (jumpTime + 450))
+    	else if (keyW.isDown && jumpFlag === true && game.time.now > (jumpTime + 450))
     	{
     	    player.body.velocity.y = -playerJump;
     	    jumpFlag = false;
@@ -210,13 +219,13 @@ shooter.state1.prototype =
     	}
     },
     
-    //Spacebar creates and shoots a bullet based on player direction and fire rate. 
+    //Clicking creates and shoots a bullet based on player direction and fire rate. 
     shootBullet: function()
     {
     	//Sets a delay to the firing of bullets based on the nextFire variable
     	if(game.time.now > nextFire)
     	{
-    		if(spaceKey.isDown)
+    		if(click)
     		{
     			//Create and enable physics for bullets
     			var bullets = game.add.sprite(player.x, player.y, 'star');
@@ -226,6 +235,17 @@ shooter.state1.prototype =
     			bulletArr[bulletArr.length] = bullets;
     			
     			//Shoots bullet with bulletSpeed velocity
+    			var angle = Math.atan((clickY - player.y) / (clickX - player.x));
+    			bullets.body.velocity.x = Math.cos(angle) * bulletSpeed;
+    			bullets.body.velocity.y = Math.sin(angle) * bulletSpeed;
+    			
+    			if (clickX < player.x)
+    			{
+    			    bullets.body.velocity.x = -bullets.body.velocity.x;
+    			    bullets.body.velocity.y = -bullets.body.velocity.y;
+    			}
+    			
+    			/* This is for two dimensional shooting
     			if (player.direction === 1)
     			{
     				bullets.body.velocity.x = bulletSpeed;
@@ -234,6 +254,8 @@ shooter.state1.prototype =
     			{
     				bullets.body.velocity.x = -bulletSpeed;
     			}
+    			*/
+    			
     			//Sets the new nextFire time
     			nextFire = game.time.now + fireRate;
     		}
