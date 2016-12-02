@@ -4,7 +4,7 @@
 var keyW, keyA, keyS, keyD; //WASD Controls
 var click, clickX, clickY; //Mouse clicks
 var gravity = 850; //World Properties
-var score = 0; //Score keeping ** 
+var score = 0, scoreText; //Score keeping
 var sky, platforms, ground, ledge; //BG
 var player, playerSpeed = 150, playerJump = 450; //Player
 var enemyNum = 10, enemyJump = 300, enemySpeed = 50; //Enemies
@@ -72,6 +72,10 @@ shooter.state1.prototype =
     	ledge = platforms.create(-200, 600, 'ground');
     	ledge.body.immovable = true;
     	
+    	//Score Display
+    	scoreText = game.add.text(20, 20, "Score: " + score, {fill: "#003366"}); 
+    	scoreText.setShadow(3, 3, 'rgba(0,0,0,0.5)', 5);
+    	
     	//Player Sprites
     	player = game.add.sprite(game.width/2, game.height/2, 'dude');
     	//Player physics
@@ -128,10 +132,8 @@ shooter.state1.prototype =
     	game.physics.arcade.collide(platforms, enemyArr);
     	game.physics.arcade.collide(player,enemyArr);
 
-    	//Changes score and makes new box for score background. **
-    	var rect = new Phaser.Rectangle(0, 0, 200, 50);
-    	game.debug.geom(rect, '#0fffff');
-    	game.add.text(0, 0, "Score: " + score, {fill: "#ff0000"}); 
+    	//Changes score and makes new box for score background.
+    	scoreText.setText("Score: " + score);
     	
     	//Checks for player movement
     	this.playerMove();
@@ -175,7 +177,7 @@ shooter.state1.prototype =
     			player.frame = 5;
     		}
     	}
-        //Press w for jump or for double jump
+        //Press w for jump or for double jump ** Double jump should only work when tapping twice. 
         if(keyW.isDown && player.body.touching.down)
     	{
     		player.body.velocity.y = -playerJump;
@@ -234,8 +236,8 @@ shooter.state1.prototype =
     			//Adds bullet to the bulletArr array
     			bulletArr[bulletArr.length] = bullets;
     			
-    			//THIS CODE CAN BE IMPROVED **
-    			//Shoots bullet with bulletSpeed velocity
+    			//** Inefficient code 
+    			//Shoots bullet with bulletSpeed velocity and calculated angle
     			var angle = Math.atan((clickY - player.y) / (clickX - player.x));
     			bullets.body.velocity.x = Math.cos(angle) * bulletSpeed;
     			bullets.body.velocity.y = Math.sin(angle) * bulletSpeed;
