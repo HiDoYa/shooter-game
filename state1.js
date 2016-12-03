@@ -6,8 +6,25 @@ var click, clickX, clickY; //Mouse clicks
 var gravity = 850; //World Properties
 var score = 0, scoreText; //Score keeping
 var sky, platforms, ground, ledge; //BG
-var player, playerSpeed = 150, playerJump = 450; //Player
-var enemyNum = 10, enemyJump = 300, enemySpeed = 50; //Enemies
+//Player
+var player;
+var playerData = 
+{
+    speed: 150,
+    jump: 450,
+    deathSpeed: 450
+};
+//Enemy
+var enemy = 
+{
+    number: 10,
+    jump: 200,
+    speed: 50,
+    deathSpeed: 200,
+    //Chances range from 0 to 1
+    chanceOfDirectionChange: 0.01,
+    chanceOfJump: 0.01
+};
 var muOne, muTwo, muThree; //Music
 var bulletSpeed = 600, nextFire = 0, fireRate = 400; //Gun
 //Rifle, handgun, etc.
@@ -21,7 +38,6 @@ var pistol =
     bulletsPerClip: 4,
     reloadTime: 2000
 };
-var jumpFlag = false, jumpTime; //For jumping
 //Arrays
 var bulletArr = new Array(); //Array for bullets
 var enemyArr = new Array(); //Array for enemies
@@ -84,13 +100,14 @@ shooter.state1.prototype =
     	player.body.gravity.y = gravity;
     	player.body.bounce.x = 0.4;
     	player.body.collideWorldBounds = true;
+    	player.alive = true;
     	//PlayerAnimations
     	player.animations.add('left', [0, 1, 2, 3], 10, true);
     	player.animations.add('right', [5, 6, 7, 8], 10, true);
     	player.direction = 0;
     	
     	//Enemy Sprites
-    	for (var i = 0; i < enemyNum; i++)
+    	for (var i = 0; i < enemy.number; i++)
     	{
     		//Find random number between screen range (that isnt close to player) and set it as x for enemy
     		do 
@@ -99,15 +116,15 @@ shooter.state1.prototype =
     		} 
     		while ((randomX > (game.width/2 - 100)) && (randomX < (game.width/2 + 100)));
     			
-    		var enemy = game.add.sprite(randomX, 100, 'baddie');
+    		var tempEnemy = game.add.sprite(randomX, 100, 'baddie');
     		//Enemy Physics
-    		game.physics.arcade.enable(enemy);
-    		enemy.body.bounce.y = 0.2;
-    		enemy.body.gravity.y = gravity;
-    		enemy.body.bounce.x = 0.4;
-    		enemy.body.collideWorldBounds = true;
+    		game.physics.arcade.enable(tempEnemy);
+    		tempEnemy.body.bounce.y = 0.2;
+    		tempEnemy.body.gravity.y = gravity;
+    		tempEnemy.body.bounce.x = 0.4;
+    		tempEnemy.body.collideWorldBounds = true;
     		//Stores the enemy in the enemy array
-    		enemyArr[i] = enemy;
+    		enemyArr[i] = tempEnemy;
     		//Sets a random enemy direction
     		enemyArr[i].direction = Math.round(Math.random());
     	}
@@ -128,23 +145,35 @@ shooter.state1.prototype =
     	clickY = game.input.activePointer.y;
         
     	//Collision
-    	game.physics.arcade.collide(player, platforms);
+    	game.physics.arcade.collide(platforms, player);
     	game.physics.arcade.collide(platforms, enemyArr);
-    	game.physics.arcade.collide(player,enemyArr);
 
     	//Changes score and makes new box for score background.
     	scoreText.setText("Score: " + score);
     	
-    	//Checks for player movement
-    	this.playerMove();
-    	//Checks for shooting of bullet
-    	this.shootBullet();
-    	//Checks for collision of bullet
-    	this.bulletEnemyCollision();
+    	if(player.alpha === 1)
+    	{
+    	    //Checks for player movement
+        	this.playerMove();
+        	//Checks for shooting of bullet
+        	this.shootBullet();
+        	//Checks for collision of bullet
+        	this.bulletEnemyCollision();
+    	}
+
     	//Moves the enemies
     	this.enemyMovement();
+    	//Checks for dead player
+    	this.playerDeath();
     	//Checks for dead enemies
-    	this.deathSprite(); 
+    	for (var i = 0; i < enemy.number; i++)
+    	{
+    	    this.deathSprite(enemyArr[i]); 
+    	}
+    	this.deathSprite(player, playerData.deathSpeed);
+    	//Checks for game over (all enemies dead or player dead)
+    	this.gameOver();
+    	
     },
     
     //Player movement for jump, left, and right
@@ -154,13 +183,13 @@ shooter.state1.prototype =
     	player.body.velocity.x = 0;
     	if (keyA.isDown)
     	{
-    		player.body.velocity.x = -playerSpeed;
+    		player.body.velocity.x = -playerData.speed;
     		player.animations.play('left');
     		player.direction = 0;
     	}
     	else if (keyD.isDown)
     	{
-    		player.body.velocity.x = playerSpeed;
+    		player.body.velocity.x = playerData.speed;
     		player.animations.play('right');
     		player.direction = 1;
     	}
@@ -177,30 +206,24 @@ shooter.state1.prototype =
     			player.frame = 5;
     		}
     	}
-        //Press w for jump or for double jump ** Double jump should only work when tapping twice. 
+        //Press w for jump
         if(keyW.isDown && player.body.touching.down)
     	{
-    		player.body.velocity.y = -playerJump;
-    		jumpFlag = true;
-    		jumpTime = game.time.now
-    	}
-    	else if (keyW.isDown && jumpFlag === true && game.time.now > (jumpTime + 450))
-    	{
-    	    player.body.velocity.y = -playerJump;
-    	    jumpFlag = false;
+    		player.body.velocity.y = -playerData.jump;
     	}
     },
     
+    //** Enemies sometimes dashes in a direction. 
     //Enemies move. If enemies are already moving in a direction, they are more likely to keep moving in that direction. At any point, they have a 1% chance of changing directions. 
     enemyMovement: function()
     {
-    	for (var i = 0; i < enemyNum; i++)
+    	for (var i = 0; i < enemy.number; i++)
     	{
     		//If enemy direction is 0, it moves to the left
     		if(enemyArr[i].direction === 0)
     		{
-    			enemyArr[i].body.velocity.x = -enemySpeed;
-    			if((Math.round(Math.random() + 0.49)) === 0)
+    			enemyArr[i].body.velocity.x = -enemy.speed;
+    			if(Math.random() > (1 - enemy.chanceOfDirectionChange))
     			{
     				enemyArr[i].direction = 1;
     			}
@@ -208,19 +231,50 @@ shooter.state1.prototype =
     		//If enemy direction is 1, it moves to the right
     		else if (enemyArr[i].direction === 1)
     		{
-    			enemyArr[i].body.velocity.x = enemySpeed;
-    			if((Math.round(Math.random() + 0.49)) === 0)
+    			enemyArr[i].body.velocity.x = enemy.speed;
+    			if(Math.random() > (1 - enemy.chanceOfDirectionChange))
     			{
     				enemyArr[i].direction = 0;
     			}
     		}
-    		if(Math.random() > 0.99)
+    		//Enemy Jumps
+    		if(Math.random() > (1 - enemy.chanceOfJump))
     		{
-    		    enemyArr[i].body.velocity.y = enemyJump;
+    		    enemyArr[i].body.velocity.y = -enemy.jump;
     		}
     	}
     },
     
+    //Player death
+    playerDeath: function()
+    {
+        for (var i = 0; i < enemy.number; i++)
+        {
+            if(enemyArr[i].alpha === 1)
+            {
+                if (game.physics.arcade.collide(player, enemyArr[i]))
+                {
+                    this.deathAnimation(player);
+                }
+            }
+        }
+    },
+    
+    //Game over
+    gameOver: function()
+    {
+          if ((score === enemy.number) || !player.alive)
+          {
+              game.state.start('state2');
+          }
+    },
+    
+    
+    //** Enemies shoot bullets. 
+    enemyShootBullet: function()
+    {
+        
+    },
     //Clicking creates and shoots a bullet based on player direction and fire rate. 
     shootBullet: function()
     {
@@ -249,17 +303,6 @@ shooter.state1.prototype =
     			    bullets.body.velocity.y = -bullets.body.velocity.y;
     			}
     			
-    			/* This is for two dimensional shooting
-    			if (player.direction === 1)
-    			{
-    				bullets.body.velocity.x = bulletSpeed;
-    			}
-    			else if (player.direction === 0)
-    			{
-    				bullets.body.velocity.x = -bulletSpeed;
-    			}
-    			*/
-    			
     			//Sets the new nextFire time
     			nextFire = game.time.now + fireRate;
     		}
@@ -276,37 +319,38 @@ shooter.state1.prototype =
     		{
     			if(game.physics.arcade.collide(enemyArr[enemyIndex], bulletArr[bulletIndex]))
     			{
-    				this.deathAnimation(enemyArr[enemyIndex]);
+    			    //Starts death animation for enemy
+    				this.deathAnimation(enemyArr[enemyIndex], enemy.deathSpeed);
+    				//Kills bullets
     				bulletArr[bulletIndex].destroy();
+    				//Increases score
+    				score++; 
     			}
     		}
     	}
     },
     
     //Plays death animation for the sprite. 
-    deathAnimation: function(sprite)
+    deathAnimation: function(sprite, time)
     {
-        //Increases score **
-    	score++; 
     	//Fades the sprite
-    	game.add.tween(sprite).to( { alpha: 0 }, 150, Phaser.Easing.Linear.None, true);
+    	game.add.tween(sprite).to( { alpha: 0 }, time, Phaser.Easing.Linear.None, true);
+    	sprite.body.velocity.x = 0;
+    	sprite.body.velocity.y = 0;
     },
     
-    //[Continuation of death] Completely kills off the sprite if it has already faded
-    deathSprite: function()
+    //Completely kills off the sprite if it has already faded
+    deathSprite: function(sprite)
     {
-    	for (var i = 0; i < enemyNum; i++)
+    	if(sprite.alpha < 0.1) 
     	{
-        	if(enemyArr[i].alpha < 0.1) 
-        	{
-        		enemyArr[i].destroy();
-    
-        	}
+    	    sprite.destroy();
+    	    sprite.alive = false;
     	}
     },
     
     //Debugging purposes
-    debugging: function(x)
+    debug: function(x)
     {
         console.log("Debug: " + x);
     }
