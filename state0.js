@@ -15,6 +15,7 @@ shooter.state0.prototype =
     },
     create: function()
     {
+        game.stage.backgroundColor = '#00cc99';
         //Creates start game button
         button = game.add.button(game.width/2, game.height/2, "startButton");
         button.anchor.set(0.5);
