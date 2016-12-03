@@ -12,13 +12,14 @@ var playerData =
 {
     speed: 150,
     jump: 450,
+    jumpCount: 0,
     deathSpeed: 450
 };
 //Enemy
 var enemy = 
 {
     spawnPos: 150, //Units away from the player
-    number: 10,
+    number: 3,
     jump: 200,
     speed: 50,
     deathSpeed: 200,
@@ -82,11 +83,11 @@ shooter.state1.prototype =
     	ground.scale.setTo(3, 2);
     	ground.body.immovable = true;
     	//Ledges
-    	ledge = platforms.create(300, 700, 'ground');
+    	ledge = platforms.create(300, 600, 'ground');
     	ledge.body.immovable = true;
-    	ledge = platforms.create(1000, 700, 'ground');
+    	ledge = platforms.create(1000, 650, 'ground');
     	ledge.body.immovable = true;
-    	ledge = platforms.create(-200, 600, 'ground');
+    	ledge = platforms.create(-200, 700, 'ground');
     	ledge.body.immovable = true;
     	
     	//Score Display
@@ -159,7 +160,7 @@ shooter.state1.prototype =
         	//Checks for shooting of bullet
         	this.shootBullet();
         	//Checks for collision of bullet
-        	this.bulletEnemyCollision();
+        	this.playerBulletCollision();
     	}
 
     	//Moves the enemies
@@ -177,6 +178,7 @@ shooter.state1.prototype =
     	
     },
     
+    //** Create dash by double tapping in a direction.
     //Player movement for jump, left, and right
     playerMove: function()
     {
@@ -207,13 +209,23 @@ shooter.state1.prototype =
     			player.frame = 5;
     		}
     	}
-        //Press w for jump
-        if(keyW.isDown && player.body.touching.down)
-    	{
-    		player.body.velocity.y = -playerData.jump;
-    	}
+        //Press w for jump or double jump
+        if (player.body.touching.down)
+        {
+            player.jumpCount = 0;
+        }
+        keyW.onDown.add(this.jumpCheck, this);
     },
-    
+    //Checks for jumping/double jumping
+    jumpCheck: function()
+    {
+        //Players can only double jump once
+        if(player.jumpCount < 2)
+        {
+            player.body.velocity.y = -playerData.jump;
+            player.jumpCount++;
+        }
+    },
     //** Enemies sometimes dashes in a direction. 
     //Enemies move. If enemies are already moving in a direction, they are more likely to keep moving in that direction. At any point, they have a 1% chance of changing directions. 
     enemyMovement: function()
@@ -311,13 +323,15 @@ shooter.state1.prototype =
     },
     
     //When an enemy and a bullet collides, play death animation for enemy and destroy bullet. 
-    bulletEnemyCollision: function()
+    //When bullet and terrain collides, bullet is detroyed.
+    playerBulletCollision: function()
     {
     	//Checks for each enemy and bullet
     	for (var enemyIndex = 0; enemyIndex < enemyArr.length; enemyIndex++)
     	{
     		for (var bulletIndex = 0; bulletIndex < bulletArr.length; bulletIndex++)
     		{
+    		    //Collision in bewteen enemy and bullet
     			if(game.physics.arcade.collide(enemyArr[enemyIndex], bulletArr[bulletIndex]))
     			{
     			    //Starts death animation for enemy
@@ -326,6 +340,11 @@ shooter.state1.prototype =
     				bulletArr[bulletIndex].destroy();
     				//Increases score
     				score++; 
+    			}
+    			//Collision in between bullet and terrain
+    			if(game.physics.arcade.collide(bulletArr[bulletIndex], platforms))
+    			{
+    			    bulletArr[bulletIndex].destroy();
     			}
     		}
     	}

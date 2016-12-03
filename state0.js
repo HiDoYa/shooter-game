@@ -15,7 +15,9 @@ shooter.state0.prototype =
     },
     create: function()
     {
-        button = game.add.button((game.width-300)/2, (game.height-300)/2, "startButton");
+        //Creates start game button
+        button = game.add.button(game.width/2, game.height/2, "startButton");
+        button.anchor.set(0.5);
         
         //Captures mouse input
         game.input.mouse.capture = true;
