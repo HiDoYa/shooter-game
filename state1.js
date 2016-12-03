@@ -17,6 +17,7 @@ var playerData =
 //Enemy
 var enemy = 
 {
+    spawnPos: 150, //Units away from the player
     number: 10,
     jump: 200,
     speed: 50,
@@ -114,7 +115,7 @@ shooter.state1.prototype =
     		{
     			var randomX = Math.random() * game.width;
     		} 
-    		while ((randomX > (game.width/2 - 100)) && (randomX < (game.width/2 + 100)));
+    		while ((randomX > (game.width/2 - enemy.spawnPos)) && (randomX < (game.width/2 + enemy.spawnPos)));
     			
     		var tempEnemy = game.add.sprite(randomX, 100, 'baddie');
     		//Enemy Physics
