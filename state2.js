@@ -30,6 +30,11 @@ shooter.state2.prototype =
             fill: "#e6e6ff",
             font: "60px Arial"
         }); 
+        // ** Calculation for when no bullets were fired
+        if (bulletArr.length === 0)
+        {
+            
+        }
         hitRateText = game.add.text(game.width/2, 3*game.height/4, "Your bullet hit rate was " + Math.round((score/bulletArr.length)*100) + "%.", 
         {
             fill: "#e6e6ff",
@@ -46,6 +51,7 @@ shooter.state2.prototype =
     },
     update: function()
     {
+        //Goes back to main menu if clicked
         if (game.input.activePointer.isDown)
         {
             game.state.start("state0");

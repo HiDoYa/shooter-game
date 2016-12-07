@@ -15,6 +15,7 @@ shooter.state0.prototype =
     },
     create: function()
     {
+        //Background Color
         game.stage.backgroundColor = '#00cc99';
         //Creates start game button
         button = game.add.button(game.width/2, game.height/2, "startButton");
@@ -25,11 +26,14 @@ shooter.state0.prototype =
     },
     update: function()
     {
+        //Button is clickable
         click = game.input.activePointer.isDown;
         button.onInputDown.add(this.startGame, this)
     },
+    //Starts state1
     startGame: function()
     {
+        //When button clicked, start game
         game.state.start("state1");
     }
 };

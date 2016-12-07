@@ -13,33 +13,72 @@ var playerData =
     speed: 150,
     jump: 450,
     jumpCount: 0,
-    deathSpeed: 450
+    deathSpeed: 450,
+    guns: 
+    {
+        pistol: 
+        {
+            damage: 20,
+            range: 500,
+            gunImage: null,
+            bulletImage: null,
+            fireRate: 400,
+            bulletSpeed: 1000,
+            bulletsPerClip: 6,
+            reloadTime: 2000
+        },
+        sniper: 
+        {
+            damage: 80,
+            range: 800, 
+            gunImage: null,
+            bulletImage: null,
+            fireRate: 900,
+            bulletSpeed: 1500,
+            bulletsPerClip: 2,
+            reloadTime: 4000
+        },
+        rifle:
+        {
+            damage: 40, 
+            range: 500,
+            gunImage: null,
+            bulletImage: null, 
+            fireRate: 100,
+            bulletSpeed: 1000,
+            bulletsPerClip: 30,
+            reloadTime: 2000
+        }
+    }
 };
 //Enemy
 var enemy = 
 {
-    spawnPos: 150, //Units away from the player
-    number: 3,
-    jump: 200,
-    speed: 50,
-    deathSpeed: 200,
-    //Chances range from 0 to 1
-    chanceOfDirectionChange: 0.01,
-    chanceOfJump: 0.01
+    basic: 
+    {
+        spawnPos: 150, //Units away from the player
+        number: 3,
+        jump: 200,
+        speed: 50,
+        health: 100,
+        deathSpeed: 200,
+        //Chances range from 0 to 1
+        chanceOfDirectionChange: 0.01,
+        chanceOfJump: 0.01
+    },
+    power:
+    {
+        
+    },
+    flying:
+    {
+        
+    }
+
 };
 var muOne, muTwo, muThree; //Music
-var bulletSpeed = 600, nextFire = 0, fireRate = 400; //Gun
+var bulletSpeed = 1000, nextFire = 0, fireRate = 400; //Gun
 //Rifle, handgun, etc.
-var pistol = 
-{
-    damage: 30,
-    range: 500,
-    gunImage: null,
-    bulletImage: null,
-    fireRate: 400,
-    bulletsPerClip: 4,
-    reloadTime: 2000
-};
 //Arrays
 var bulletArr = new Array(); //Array for bullets
 var enemyArr = new Array(); //Array for enemies
@@ -96,6 +135,7 @@ shooter.state1.prototype =
     	
     	//Player Sprites
     	player = game.add.sprite(game.width/2, game.height/2, 'dude');
+    	player.anchor.set(0.5);
     	//Player physics
     	game.physics.arcade.enable(player);
     	player.body.bounce.y = 0.2;
