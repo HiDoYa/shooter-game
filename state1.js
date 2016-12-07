@@ -77,7 +77,7 @@ var enemy =
 
 };
 var muOne, muTwo, muThree; //Music
-var bulletSpeed = 1000, nextFire = 0, fireRate = 400; //Gun
+var nextFire = 0, fireRate = 400; //Gun
 //Rifle, handgun, etc.
 //Arrays
 var bulletArr = new Array(); //Array for bullets
@@ -149,14 +149,14 @@ shooter.state1.prototype =
     	player.direction = 0;
     	
     	//Enemy Sprites
-    	for (var i = 0; i < enemy.number; i++)
+    	for (var i = 0; i < enemy.basic.number; i++)
     	{
     		//Find random number between screen range (that isnt close to player) and set it as x for enemy
     		do 
     		{
     			var randomX = Math.random() * game.width;
     		} 
-    		while ((randomX > (game.width/2 - enemy.spawnPos)) && (randomX < (game.width/2 + enemy.spawnPos)));
+    		while ((randomX > (game.width/2 - enemy.basic.spawnPos)) && (randomX < (game.width/2 + enemy.basic.spawnPos)));
     			
     		var tempEnemy = game.add.sprite(randomX, 100, 'baddie');
     		//Enemy Physics
@@ -176,6 +176,10 @@ shooter.state1.prototype =
     	keyA = game.input.keyboard.addKey(Phaser.Keyboard.A);
     	keyS = game.input.keyboard.addKey(Phaser.Keyboard.S);
     	keyD = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    	key1 = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
+    	key2 = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
+    	key3 = game.input.keyboard.addKey(Phaser.Keyboard.THREE);
+    	key4 = game.input.keyboard.addKey(Phaser.Keyboard.FOUR);
     	game.input.mouse.capture = true;
     },
     
@@ -208,7 +212,7 @@ shooter.state1.prototype =
     	//Checks for dead player
     	this.playerDeath();
     	//Checks for dead enemies
-    	for (var i = 0; i < enemy.number; i++)
+    	for (var i = 0; i < enemy.basic.number; i++)
     	{
     	    this.deathSprite(enemyArr[i]); 
     	}
@@ -270,13 +274,13 @@ shooter.state1.prototype =
     //Enemies move. If enemies are already moving in a direction, they are more likely to keep moving in that direction. At any point, they have a 1% chance of changing directions. 
     enemyMovement: function()
     {
-    	for (var i = 0; i < enemy.number; i++)
+    	for (var i = 0; i < enemy.basic.number; i++)
     	{
     		//If enemy direction is 0, it moves to the left
     		if(enemyArr[i].direction === 0)
     		{
-    			enemyArr[i].body.velocity.x = -enemy.speed;
-    			if(Math.random() > (1 - enemy.chanceOfDirectionChange))
+    			enemyArr[i].body.velocity.x = -enemy.basic.speed;
+    			if(Math.random() > (1 - enemy.basic.chanceOfDirectionChange))
     			{
     				enemyArr[i].direction = 1;
     			}
@@ -284,16 +288,16 @@ shooter.state1.prototype =
     		//If enemy direction is 1, it moves to the right
     		else if (enemyArr[i].direction === 1)
     		{
-    			enemyArr[i].body.velocity.x = enemy.speed;
-    			if(Math.random() > (1 - enemy.chanceOfDirectionChange))
+    			enemyArr[i].body.velocity.x = enemy.basic.speed;
+    			if(Math.random() > (1 - enemy.basic.chanceOfDirectionChange))
     			{
     				enemyArr[i].direction = 0;
     			}
     		}
     		//Enemy Jumps
-    		if(Math.random() > (1 - enemy.chanceOfJump))
+    		if(Math.random() > (1 - enemy.basic.chanceOfJump))
     		{
-    		    enemyArr[i].body.velocity.y = -enemy.jump;
+    		    enemyArr[i].body.velocity.y = -enemy.basic.jump;
     		}
     	}
     },
@@ -301,7 +305,7 @@ shooter.state1.prototype =
     //Player death
     playerDeath: function()
     {
-        for (var i = 0; i < enemy.number; i++)
+        for (var i = 0; i < enemy.basic.number; i++)
         {
             if(enemyArr[i].alpha === 1)
             {
@@ -316,7 +320,7 @@ shooter.state1.prototype =
     //Game over
     gameOver: function()
     {
-          if ((score === enemy.number) || !player.alive)
+          if ((score === enemy.basic.number) || !player.alive)
           {
               game.state.start('state2');
           }
@@ -346,8 +350,8 @@ shooter.state1.prototype =
     			//** Inefficient code 
     			//Shoots bullet with bulletSpeed velocity and calculated angle
     			var angle = Math.atan((clickY - player.y) / (clickX - player.x));
-    			bullets.body.velocity.x = Math.cos(angle) * bulletSpeed;
-    			bullets.body.velocity.y = Math.sin(angle) * bulletSpeed;
+    			bullets.body.velocity.x = Math.cos(angle) * playerData.guns.pistol.bulletSpeed;
+    			bullets.body.velocity.y = Math.sin(angle) * playerData.guns.pistol.bulletSpeed;
 
     			//For angles between 91 degrees to 270 degrees, the x and y velocity is negative
     			if (clickX < player.x)
@@ -375,7 +379,7 @@ shooter.state1.prototype =
     			if(game.physics.arcade.collide(enemyArr[enemyIndex], bulletArr[bulletIndex]))
     			{
     			    //Starts death animation for enemy
-    				this.deathAnimation(enemyArr[enemyIndex], enemy.deathSpeed);
+    				this.deathAnimation(enemyArr[enemyIndex], enemy.basic.deathSpeed);
     				//Kills bullets
     				bulletArr[bulletIndex].destroy();
     				//Increases score
