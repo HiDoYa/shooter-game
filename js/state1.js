@@ -1,5 +1,4 @@
-//The actual shooting game
-
+//The actual shooting game 
 //Variables
 var keyW, keyA, keyS, keyD; //WASD Controls
 var click, clickX, clickY; //Mouse clicks
@@ -110,21 +109,13 @@ shooter.state1.prototype =
 		game.load.image('ground', 'assets/platform.png');
 		game.load.image('star', 'assets/star.png');
 		game.load.image('firstaid', 'assets/firstaid.png');
+		game.load.image('powerup', 'assets/powerup.png');
 		game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 		game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
-		game.load.audio('animalCrossingMP3', 'assets/animalCrossing.mp3');
-		game.load.audio('tobyFoxMP3', 'assets/dogBass.mp3');
-		game.load.audio('diddyKongMP3', 'assets/diddyKong.mp3');
 	},
 	
 	create: function()
 	{
-		//Music
-		muOne = game.add.audio('animalCrossingMP3');
-		muTwo = game.add.audio('tobyFoxMP3');
-		muThree = game.add.audio('diddyKongMP3');
-		//muThree.play();
-		
 		//Enables physics
 		game.physics.startSystem(Phaser.Physics.ARCADE);
 		//Create sky/background
@@ -348,6 +339,12 @@ shooter.state1.prototype =
 	{
 		
 	},
+
+	//** Powerups occasionally drop
+	powerups: function()
+	{
+	}
+
 	//Clicking creates and shoots a bullet based on player direction and fire rate. 
 	shootBullet: function()
 	{

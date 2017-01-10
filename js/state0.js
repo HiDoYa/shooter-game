@@ -10,13 +10,13 @@ shooter.state0.prototype =
 {
 	preload: function()
 	{
-	 	//Temp placeholder image
+		//Temp placeholder image
 		game.load.image("startButton", "assets/start.png");
 	},
 	create: function()
 	{
 		//Background Color
-		game.stage.backgroundColor = '#00cc99';
+		game.stage.backgroundColor = '#1d4d9b';
 		//Creates start game button
 		button = game.add.button(game.width/2, game.height/2, "startButton");
 		button.anchor.set(0.5);
