@@ -20,7 +20,7 @@ shooter.state2.prototype =
 			font: "75px Arial"
 		}); 
 		//** Game does not reset properly. Variables are not reset. (Scopes?)
-		instructionsText = game.add.text(game.width/2, (game.height/4) + 80, "Click to go back to main menu.", 
+		instructionsText = game.add.text(game.width/2, (game.height/4) + 80, "Refresh to replay";
 		{
 			fill: "#e6e6ff",
 			font: "40px Arial"
@@ -52,9 +52,10 @@ shooter.state2.prototype =
 	update: function()
 	{
 		//Goes back to main menu if clicked
-		if (game.input.activePointer.isDown)
-		{
-			game.state.start("state0");
-		}
+		//TODO: Currently bugged
+		//if (game.input.activePointer.isDown)
+		//{
+		//	game.state.start("state0");
+		//}
 	}
 };

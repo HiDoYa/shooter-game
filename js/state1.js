@@ -343,7 +343,7 @@ shooter.state1.prototype =
 	//** Powerups occasionally drop
 	powerups: function()
 	{
-	}
+	},
 
 	//Clicking creates and shoots a bullet based on player direction and fire rate. 
 	shootBullet: function()
